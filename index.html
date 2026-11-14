@@ -8,6 +8,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Erdmännchen">
 <meta name="theme-color" content="#FFD3E5">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<script>if("serviceWorker" in navigator && location.protocol.indexOf("http")===0){addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){});});}</script>
 <style>[hidden]{display:none!important}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
 <!--ARTIFACT-START-->
 <title>Hau das Erdmännchen</title>
@@ -54,6 +59,8 @@ button:focus-visible{outline:3px solid var(--hot);outline-offset:3px}
 /* HUD */
 .hud{display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:end}
 .label{font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:.7}
+.score .label b{font-weight:900;color:var(--hot)}
+body.night .score .label b{color:#FFB3D2}
 .score .val{font-family:var(--font-display);font-size:46px;line-height:.95;font-variant-numeric:tabular-nums}
 .right{display:flex;gap:8px;align-items:center}
 .combo{font-family:var(--font-display);font-size:18px;padding:6px 11px;border-radius:99px;background:var(--cream);color:var(--berry);box-shadow:0 3px 0 rgba(138,28,80,.18);transition:transform .15s}
@@ -144,6 +151,29 @@ body.boss .timebar i{background:linear-gradient(90deg,#B0177A,var(--hot))}
 .stats small{font-size:11px;letter-spacing:.06em;text-transform:uppercase;opacity:.75}
 .hint{font-size:12px;opacity:.65;margin:0}
 
+body.night{
+  background:
+    radial-gradient(2px 2px at 12% 6%, #fff 50%, rgba(255,255,255,0) 51%),
+    radial-gradient(1.5px 1.5px at 32% 14%, #fff 50%, rgba(255,255,255,0) 51%),
+    radial-gradient(2px 2px at 58% 4%, #fff 50%, rgba(255,255,255,0) 51%),
+    radial-gradient(1.5px 1.5px at 70% 19%, #fff 50%, rgba(255,255,255,0) 51%),
+    radial-gradient(2px 2px at 44% 22%, #fff 50%, rgba(255,255,255,0) 51%),
+    radial-gradient(1.5px 1.5px at 6% 20%, #fff 50%, rgba(255,255,255,0) 51%),
+    radial-gradient(56px 56px at 80% 18%, #FFF3D6 0 45%, rgba(255,243,214,0) 46%),
+    radial-gradient(140% 38% at 15% 100%, #A8467E 0 70%, rgba(0,0,0,0) 71%),
+    radial-gradient(120% 34% at 95% 92%, #B9578E 0 70%, rgba(0,0,0,0) 71%),
+    linear-gradient(180deg, #2E1240 0%, #7A2A6B 26%, #C46A9C 26.2%, #C46A9C 100%);
+}
+body.night .hud{color:var(--cream)}
+body.night .timebar{background:rgba(255,247,250,.22)}
+body.night .pips span.off{background:rgba(255,247,250,.22)}
+body.night .mound{background:radial-gradient(ellipse at 50% 28%, #F6BDD6 0%, #DC8DB6 45%, #B65E8C 80%)}
+.title.sm span{font-size:clamp(34px,10vw,48px)}
+.btns{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;align-items:center}
+.cta.ghost{background:var(--cream);color:var(--berry);font-size:20px;padding:12px 24px;box-shadow:0 6px 0 rgba(138,28,80,.25)}
+.cta.ghost:active{box-shadow:0 2px 0 rgba(138,28,80,.25)}
+.tongue{animation:flick .5s steps(2,jump-none) infinite}
+@keyframes flick{from{opacity:1}to{opacity:0}}
 #confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:29}
 
 @keyframes spin{to{transform:rotate(360deg)}}
@@ -165,7 +195,7 @@ body.boss .timebar i{background:linear-gradient(90deg,#B0177A,var(--hot))}
 <body>
 <div class="app">
   <header class="hud">
-    <div class="score"><div class="label">Punkte</div><div class="val" id="score">0</div></div>
+    <div class="score"><div class="label">Punkte · <b id="lvl">Level 1</b></div><div class="val" id="score">0</div></div>
     <div class="right">
       <div class="combo" id="combo" aria-live="polite">×1</div>
       <div class="time"><div class="label">Sek</div><div class="val" id="time">40</div></div>
@@ -181,9 +211,17 @@ body.boss .timebar i{background:linear-gradient(90deg,#B0177A,var(--hot))}
   <h1 class="title"><small>Hau das</small><span>Erdmännchen!</span></h1>
   <div class="hero" id="hero"><span class="mound"></span><span class="opening"></span><span class="pit"><span class="critter" id="heroCritter"></span></span></div>
   <div class="legend" id="legend"></div>
-  <p class="teaser">40 Sekunden draufhauen. Wer durchhält, trifft danach auf die <strong>Erdmännchen-Königin</strong>. Und zum Schluss steigt eine Party.</p>
-  <button class="cta" id="go">Los geht’s!</button>
+  <p class="teaser">Zwei Level voller Erdmännchen. Danach wartet die <strong>Erdmännchen-Königin</strong>, und zum Schluss steigt eine Party.</p>
+  <div class="btns"><button class="cta" id="go">Los geht’s!</button><button class="cta ghost" id="goL2" hidden>Level 2</button></div>
   <p class="best" id="bestStart"></p>
+</section>
+
+<section class="overlay" id="level2" hidden>
+  <h2 class="title sm"><small>Level 2</small><span>Nacht in der Kalahari</span></h2>
+  <p class="best" id="l1score"></p>
+  <div class="legend" id="legend2"></div>
+  <p class="teaser">35 Sekunden. Es wird schneller, und bis zu vier Löcher sind gleichzeitig offen. Danach kommt die Königin.</p>
+  <button class="cta" id="go2">Weiter!</button>
 </section>
 
 <section class="overlay" id="pause" hidden>
@@ -213,7 +251,15 @@ body.boss .timebar i{background:linear-gradient(90deg,#B0177A,var(--hot))}
   "use strict";
   const $ = s => document.querySelector(s);
   const now = () => performance.now();
-  const ROUND = 40, BOSS_TIME = 15, BOSS_HP = 10;
+  const BOSS_TIME = 15, BOSS_HP = 10;
+  const LEVELS = {
+    1:{ time:40, up:[1,2.7], gap:[820,430], stay:[1150,560],
+        pick:(r,p) => r < .08 ? "gold" : r < .17 + .11*p ? "cactus" : "normal" },
+    2:{ time:35, up:[2,2.4], gap:[640,330], stay:[950,500],
+        pick:(r,p) => r < .07 ? "gold" : r < .14 ? "clock" : r < .32 ? "guard" : r < .44 + .1*p ? "snake" : r < .5 + .1*p ? "cactus" : "normal" },
+  };
+  const STAY_FACTOR = { gold:.72, guard:1.4, clock:.8 };
+  const BASE = { normal:10, gold:50, guard:25, clock:10 };
 
   /* ---------- Grafiken ---------- */
   const PAL = {
@@ -228,12 +274,15 @@ body.boss .timebar i{background:linear-gradient(90deg,#B0177A,var(--hot))}
       <circle cx="50" cy="15" r="3" fill="#FF4D97"/><circle cx="38" cy="20" r="2.2" fill="#FF9BC4"/><circle cx="62" cy="20" r="2.2" fill="#FF9BC4"/>` : "";
     const cape = kind === "queen" ? `<path d="M22 130 C20 96 28 74 50 74 C72 74 80 96 78 130 Z" fill="#FF4D97"/><path d="M30 80 Q50 92 70 80 L66 74 Q50 82 34 74 Z" fill="#fff" opacity=".9"/>` : "";
     const hat = kind === "party" ? `<path d="M38 26 L50 -6 L62 26 Z" fill="#FF4D97"/><path d="M41 18 L59 18 M44 10 L56 10" stroke="#FFF7FA" stroke-width="3"/><circle cx="50" cy="-7" r="4.5" fill="#FFC23D"/>` : "";
+    const helmet = kind === "guard" ? `<path d="M23 34 C23 5 77 5 77 34 Z" fill="#FF4D97" stroke="#B5165F" stroke-width="2"/><rect x="46" y="7" width="8" height="25" rx="4" fill="#FF8DBD"/><path d="M31 25 Q35 15 44 12" stroke="#FFC9DF" stroke-width="3.5" stroke-linecap="round" fill="none"/><rect x="16" y="29" width="68" height="8" rx="4" fill="#B5165F"/>` : "";
+    const watch = kind === "clock" ? `<rect x="46" y="72" width="8" height="6" rx="2" fill="#FF4D97"/><circle cx="50" cy="91" r="13" fill="#FFF7FA" stroke="#FF4D97" stroke-width="3.5"/><path d="M50 91 V82 M50 91 l6 3.5" stroke="#8A1C50" stroke-width="2.4" stroke-linecap="round"/><ellipse cx="37" cy="93" rx="6.5" ry="4.6" fill="${p.m}"/><ellipse cx="63" cy="93" rx="6.5" ry="4.6" fill="${p.m}"/>` : "";
     const sparkles = kind === "gold" ? `
       <path class="sparkle" d="M12 30 l3 7 7 3 -7 3 -3 7 -3 -7 -7 -3 7 -3z" fill="#FFF6C8"/>
       <path class="sparkle" style="animation-delay:.3s" d="M88 60 l2.4 5.6 5.6 2.4 -5.6 2.4 -2.4 5.6 -2.4 -5.6 -5.6 -2.4 5.6 -2.4z" fill="#FFF6C8"/>` : "";
     return `<svg viewBox="0 0 100 130" aria-hidden="true">
       ${sparkles}
       <path d="M24 132 C22 96 30 72 50 72 C70 72 78 96 76 132 Z" fill="${p.b}"/>
+      <ellipse cx="50" cy="70" rx="15" ry="9" fill="${p.b}"/>
       ${cape}
       <ellipse cx="50" cy="106" rx="15" ry="25" fill="${p.l}"/>
       <ellipse cx="39" cy="86" rx="6.5" ry="4.6" fill="${p.m}"/><ellipse cx="61" cy="86" rx="6.5" ry="4.6" fill="${p.m}"/>
@@ -253,7 +302,7 @@ body.boss .timebar i{background:linear-gradient(90deg,#B0177A,var(--hot))}
       <ellipse cx="50" cy="55.5" rx="4.6" ry="3.3" fill="${INK}"/>
       <path d="M50 58.5 v3 M45 62 q5 4.2 10 0" stroke="${INK}" fill="none" stroke-width="1.7" stroke-linecap="round"/>
       <circle cx="30" cy="57" r="4.2" fill="${CHEEK}" opacity=".55"/><circle cx="70" cy="57" r="4.2" fill="${CHEEK}" opacity=".55"/>
-      ${crown}${hat}
+      ${watch}${crown}${hat}${helmet}
       <g class="stars" fill="#FFC23D" stroke="#B87800" stroke-width="1">
         <path d="M20 22 l2.5 5 5.5 .8 -4 3.9 1 5.5 -5 -2.6 -5 2.6 1 -5.5 -4 -3.9 5.5 -.8z"/>
         <path d="M80 22 l2.5 5 5.5 .8 -4 3.9 1 5.5 -5 -2.6 -5 2.6 1 -5.5 -4 -3.9 5.5 -.8z"/>
@@ -281,7 +330,25 @@ body.boss .timebar i{background:linear-gradient(90deg,#B0177A,var(--hot))}
       <g class="stars" fill="#FFC23D"><path d="M22 24 l2.5 5 5.5 .8 -4 3.9 1 5.5 -5 -2.6 -5 2.6 1 -5.5 -4 -3.9 5.5 -.8z"/><path d="M80 18 l2.5 5 5.5 .8 -4 3.9 1 5.5 -5 -2.6 -5 2.6 1 -5.5 -4 -3.9 5.5 -.8z"/></g>
     </svg>`;
   }
-  const art = t => t === "cactus" ? cactus() : meerkat(t);
+  function snake(){
+    const c = "#9B5BD6", cd = "#6E37A8", body = "M50 140 C18 124 82 104 50 88 C24 76 74 62 54 46";
+    return `<svg viewBox="0 0 100 130" aria-hidden="true">
+      <path d="${body}" stroke="${cd}" stroke-width="21" fill="none" stroke-linecap="round"/>
+      <path d="${body}" stroke="${c}" stroke-width="15" fill="none" stroke-linecap="round"/>
+      <path d="${body}" stroke="#FF9BC4" stroke-width="5" stroke-dasharray="1 11" fill="none" stroke-linecap="round"/>
+      <path class="tongue" d="M54 47 v9 l-4 4 M54 56 l4 4" stroke="#E0245E" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+      <ellipse cx="54" cy="35" rx="18" ry="13" fill="${c}" stroke="${cd}" stroke-width="2.5"/>
+      <g class="eyes-open">
+        <circle cx="46.5" cy="31" r="4.8" fill="#FFF7FA"/><circle cx="61.5" cy="31" r="4.8" fill="#FFF7FA"/>
+        <ellipse cx="47" cy="31" rx="1.7" ry="3.6" fill="${INK}"/><ellipse cx="62" cy="31" rx="1.7" ry="3.6" fill="${INK}"/>
+      </g>
+      <g class="eyes-x" stroke="${INK}" stroke-width="2.4" stroke-linecap="round"><path d="M43 27.5 l7 7 M50 27.5 l-7 7 M58 27.5 l7 7 M65 27.5 l-7 7"/></g>
+      <path d="M46 41 q8 4 16 0" stroke="${INK}" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      <circle cx="41" cy="38" r="3" fill="${CHEEK}" opacity=".6"/><circle cx="67" cy="38" r="3" fill="${CHEEK}" opacity=".6"/>
+      <g class="stars" fill="#FFC23D"><path d="M22 14 l2.5 5 5.5 .8 -4 3.9 1 5.5 -5 -2.6 -5 2.6 1 -5.5 -4 -3.9 5.5 -.8z"/><path d="M84 12 l2.5 5 5.5 .8 -4 3.9 1 5.5 -5 -2.6 -5 2.6 1 -5.5 -4 -3.9 5.5 -.8z"/></g>
+    </svg>`;
+  }
+  const art = t => t === "cactus" ? cactus() : t === "snake" ? snake() : meerkat(t);
   const MALLET = `<svg viewBox="0 0 70 70" aria-hidden="true"><rect x="12" y="26" width="9" height="42" rx="4" fill="#8A5A34" transform="rotate(-35 16 47)"/><rect x="18" y="4" width="44" height="26" rx="11" fill="#FF4D97" stroke="#B5165F" stroke-width="3" transform="rotate(-35 40 17)"/><rect x="24" y="9" width="10" height="16" rx="4" fill="#FFB3D2" transform="rotate(-35 40 17)"/></svg>`;
   const ICON_ON = `<svg viewBox="0 0 24 24" fill="none" stroke="#8A1C50" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z" fill="#8A1C50"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>`;
   const ICON_OFF = `<svg viewBox="0 0 24 24" fill="none" stroke="#8A1C50" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z" fill="#8A1C50"/><path d="M17 9l5 6M22 9l-5 6"/></svg>`;
@@ -316,13 +383,16 @@ body.boss .timebar i{background:linear-gradient(90deg,#B0177A,var(--hot))}
     win(){ [784,988,1175,1568].forEach((f,k)=>{ tone(f,.3,"triangle",.12,null,k*.1); tone(f/2,.3,"square",.05,null,k*.1); }); },
     lose(){ [523,415,330].forEach((f,k)=>tone(f,.25,"triangle",.11,null,k*.16)); },
     squeak(){ tone(1100,.12,"sine",.12,1900); },
+    clonk(){ tone(1500,.08,"square",.1,900); tone(2300,.14,"triangle",.07); },
+    tick(){ [1320,1760,2093].forEach((f,k)=>tone(f,.08,"sine",.12,null,k*.05)); },
+    hiss(){ tone(300,.3,"sawtooth",.12,70); tone(3000,.2,"sine",.03,1800); },
   };
   const buzz = ms => { try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} };
 
   /* ---------- Speicher ---------- */
   const store = {
-    get(){ try{ return parseInt(localStorage.getItem("erdmaennchen-best") || "0",10) || 0; }catch(e){ return 0; } },
-    set(v){ try{ localStorage.setItem("erdmaennchen-best", String(v)); }catch(e){} },
+    get(k="best"){ try{ return parseInt(localStorage.getItem("erdmaennchen-" + k) || "0",10) || 0; }catch(e){ return 0; } },
+    set(v, k="best"){ try{ localStorage.setItem("erdmaennchen-" + k, String(v)); }catch(e){} },
   };
 
   /* ---------- Spielfeld ---------- */
@@ -346,9 +416,15 @@ body.boss .timebar i{background:linear-gradient(90deg,#B0177A,var(--hot))}
     [meerkat("gold"),"Goldenes Erdmännchen","+50"],
     [cactus(),"Kaktus – nicht hauen!","−20"],
   ].map(([s,t,p]) => `<div>${s}<span>${t}</span><b>${p}</b></div>`).join("");
+  $("#legend2").innerHTML = [
+    [meerkat("guard"),"Helm-Erdmännchen – 2× hauen","+25"],
+    [meerkat("clock"),"Zeit-Erdmännchen","+3 Sek"],
+    [snake(),"Schlange – Finger weg!","−30"],
+  ].map(([s,t,p]) => `<div>${s}<span>${t}</span><b>${p}</b></div>`).join("");
 
   /* ---------- Zustand ---------- */
-  const S = { phase:"start", score:0, combo:0, best:store.get(), hits:0, golds:0, bossHp:BOSS_HP, queen:null, last:-1 };
+  const S = { phase:"start", level:1, score:0, combo:0, best:store.get(), hits:0, golds:0, bossHp:BOSS_HP, queen:null, last:-1 };
+  const cfg = () => LEVELS[S.level];
   let roundStart=0, bossStart=0, raf=0, spawnT=0, bossT=0, pausedPhase=null, pausedAt=0;
 
   const fmt = n => n.toLocaleString("de-DE");
@@ -383,7 +459,7 @@ body.boss .timebar i{background:linear-gradient(90deg,#B0177A,var(--hot))}
   function show(i, type, dur){
     const h = holes[i];
     clearTimeout(h.timer); clearTimeout(h.hideTimer);
-    h.type = type; h.hit = false; h.up = true;
+    h.type = type; h.hit = false; h.up = true; h.hp = type === "guard" ? 2 : 1;
     h.el.classList.remove("hit","dance","spin");
     h.critter.innerHTML = art(type);
     void h.critter.offsetWidth;
@@ -394,7 +470,7 @@ body.boss .timebar i{background:linear-gradient(90deg,#B0177A,var(--hot))}
     const h = holes[i];
     clearTimeout(h.timer); clearTimeout(h.hideTimer);
     if(!h.up) return;
-    if(escaped && !h.hit && (h.type === "normal" || h.type === "gold")) breakCombo();
+    if(escaped && !h.hit && (h.type === "normal" || h.type === "gold" || h.type === "guard")) breakCombo();
     h.up = false; h.el.classList.remove("up");
     setTimeout(()=>{ if(!h.up){ h.el.classList.remove("hit","dance","spin"); h.critter.innerHTML = ""; } }, 220);
   }
@@ -410,10 +486,20 @@ body.boss .timebar i{background:linear-gradient(90deg,#B0177A,var(--hot))}
     initAudio();
     mallet(x, y);
     if(!h.up || h.hit){ puff(h); sfx.miss(); if(S.phase === "play") breakCombo(); return; }
+    if(h.type === "guard" && h.hp > 1){
+      h.hp--; sfx.clonk(); buzz(8); popup(h, "Klonk!");
+      h.critter.innerHTML = meerkat("normal");
+      clearTimeout(h.timer); h.timer = setTimeout(()=>hide(i, true), 750);
+      return;
+    }
     h.hit = true; clearTimeout(h.timer);
     h.el.classList.add("hit");
     buzz(12);
-    if(h.type === "cactus"){
+    if(h.type === "snake"){
+      S.score = Math.max(0, S.score - 30); breakCombo(); sfx.hiss(); buzz([40,30,40]);
+      popup(h, "Zisch! −30", "bad");
+      board.classList.remove("shake"); void board.offsetWidth; board.classList.add("shake");
+    } else if(h.type === "cactus"){
       S.score = Math.max(0, S.score - 20); breakCombo(); sfx.ouch(); buzz([30,40,30]);
       popup(h, "Autsch! −20", "bad");
       board.classList.remove("shake"); void board.offsetWidth; board.classList.add("shake");
@@ -423,9 +509,10 @@ body.boss .timebar i{background:linear-gradient(90deg,#B0177A,var(--hot))}
       clearTimeout(bossT); bossT = setTimeout(bossLoop, 430);
     } else {
       S.combo++; S.hits++;
-      const m = mult(), base = h.type === "gold" ? 50 : 10, pts = base * m;
+      const m = mult(), pts = (BASE[h.type] || 10) * m;
       S.score += pts;
       if(h.type === "gold"){ S.golds++; sfx.gold(); popup(h, "+" + pts, "gold"); }
+      else if(h.type === "clock"){ sfx.tick(); popup(h, "+3 Sek", "gold"); roundStart = Math.min(roundStart + 3000, now()); }
       else { sfx.bonk(); popup(h, "+" + pts, m > 1 ? "big" : ""); }
       setCombo(S.combo === 5 || S.combo === 10 || S.combo === 15);
     }
@@ -444,26 +531,26 @@ body.boss .timebar i{background:linear-gradient(90deg,#B0177A,var(--hot))}
   /* ---------- Runde 1 ---------- */
   function spawnLoop(){
     if(S.phase !== "play") return;
-    const p = Math.min(1, (now() - roundStart) / (ROUND*1000));
+    const L = cfg();
+    const p = Math.min(1, Math.max(0, (now() - roundStart) / (L.time*1000)));
     const upCount = holes.filter(h=>h.up && !h.hit).length;
-    const maxUp = 1 + Math.floor(p*2.7);
+    const maxUp = L.up[0] + Math.floor(p*L.up[1]);
     if(upCount < maxUp){
       const i = pickHole();
       if(i >= 0){
-        const r = Math.random();
-        const type = r < .08 ? "gold" : r < .08 + .09 + .11*p ? "cactus" : "normal";
-        const dur = (1150 - 560*p) * (type === "gold" ? .72 : 1) * (.85 + Math.random()*.3);
+        const type = L.pick(Math.random(), p);
+        const dur = (L.stay[0] - (L.stay[0]-L.stay[1])*p) * (STAY_FACTOR[type] || 1) * (.85 + Math.random()*.3);
         show(i, type, dur);
       }
     }
-    spawnT = setTimeout(spawnLoop, (820 - 430*p) * (.6 + Math.random()*.6));
+    spawnT = setTimeout(spawnLoop, (L.gap[0] - (L.gap[0]-L.gap[1])*p) * (.6 + Math.random()*.6));
   }
 
   function frame(){
     const t = now();
     if(S.phase === "play"){
-      const left = Math.max(0, ROUND - (t - roundStart)/1000);
-      setTime(left, ROUND);
+      const T = cfg().time, left = Math.max(0, T - (t - roundStart)/1000);
+      setTime(left, T);
       if(left <= 0){ endRound(); return; }
     } else if(S.phase === "boss"){
       const left = Math.max(0, BOSS_TIME - (t - bossStart)/1000);
@@ -473,16 +560,23 @@ body.boss .timebar i{background:linear-gradient(90deg,#B0177A,var(--hot))}
     raf = requestAnimationFrame(frame);
   }
 
-  function startGame(){
+  function startLevel(n){
+    S.level = n; S.phase = "play"; S.last = -1;
+    document.body.classList.toggle("night", n === 2);
+    $("#lvl").textContent = "Level " + n;
+    $("#level2").hidden = true;
+    hideAll();
+    roundStart = now(); setTime(cfg().time, cfg().time);
+    cancelAnimationFrame(raf); raf = requestAnimationFrame(frame);
+    clearTimeout(spawnT); spawnT = setTimeout(spawnLoop, 500);
+  }
+  function startGame(level){
     initAudio();
-    Object.assign(S, { phase:"play", score:0, combo:0, hits:0, golds:0, bossHp:BOSS_HP, queen:null, last:-1 });
+    Object.assign(S, { score:0, combo:0, hits:0, golds:0, bossHp:BOSS_HP, queen:null });
     setScore(); setCombo(false);
     document.body.classList.remove("boss"); $("#bossbar").hidden = true;
     $("#start").hidden = true; $("#sheet").classList.remove("show"); stopConfetti();
-    hideAll();
-    roundStart = now(); setTime(ROUND, ROUND);
-    cancelAnimationFrame(raf); raf = requestAnimationFrame(frame);
-    clearTimeout(spawnT); spawnT = setTimeout(spawnLoop, 500);
+    startLevel(level);
   }
 
   function banner(title, text, withQueen){
@@ -494,7 +588,14 @@ body.boss .timebar i{background:linear-gradient(90deg,#B0177A,var(--hot))}
 
   /* ---------- Königin ---------- */
   function endRound(){
-    S.phase = "intro"; clearTimeout(spawnT); hideAll(); setTime(0, ROUND);
+    S.phase = "intro"; clearTimeout(spawnT); hideAll(); setTime(0, cfg().time);
+    if(S.level === 1){
+      store.set(1, "level2");
+      sfx.gold();
+      $("#l1score").textContent = `Level 1 geschafft – ${fmt(S.score)} Punkte!`;
+      setTimeout(()=>{ if(S.phase === "intro") $("#level2").hidden = false; }, 600);
+      return;
+    }
     sfx.fanfare(); buzz([40,60,40]);
     banner("Achtung!", "Die Erdmännchen-Königin kommt! Triff sie 10-mal in 15 Sekunden.", true);
     setTimeout(startBoss, 2400);
@@ -538,12 +639,12 @@ body.boss .timebar i{background:linear-gradient(90deg,#B0177A,var(--hot))}
 
   /* ---------- Party ---------- */
   const RANKS = [
-    [0,"Sandkorn-Anfänger"],[300,"Loch-Lauerer"],[700,"Erdmännchen-Jäger"],
-    [1200,"Hammer-Held"],[2000,"Wüsten-Champion"],[3000,"Legende der Kalahari"],
+    [0,"Sandkorn-Anfänger"],[400,"Loch-Lauerer"],[900,"Erdmännchen-Jäger"],
+    [1600,"Hammer-Held"],[2600,"Wüsten-Champion"],[4000,"Legende der Kalahari"],
   ];
   function party(){
     document.body.classList.remove("boss"); $("#bossbar").hidden = true;
-    S.combo = 0; setCombo(false); setTime(0, ROUND);
+    S.combo = 0; setCombo(false); setTime(0, 1);
     holes.forEach((h,i)=>{
       const type = i === 4 && S.queen ? "queen" : "party";
       clearTimeout(h.timer); clearTimeout(h.hideTimer);
@@ -623,8 +724,11 @@ body.boss .timebar i{background:linear-gradient(90deg,#B0177A,var(--hot))}
   });
 
   /* ---------- Bedienung ---------- */
-  $("#go").addEventListener("click", startGame);
-  $("#again").addEventListener("click", startGame);
+  $("#go").addEventListener("click", () => startGame(1));
+  $("#goL2").addEventListener("click", () => startGame(2));
+  $("#go2").addEventListener("click", () => { initAudio(); startLevel(2); });
+  $("#again").addEventListener("click", () => startGame(1));
+  $("#goL2").hidden = !store.get("level2");
   const mute = $("#mute");
   function setMute(){ mute.innerHTML = audio.muted ? ICON_OFF : ICON_ON; mute.setAttribute("aria-label", audio.muted ? "Ton an" : "Ton aus"); }
   mute.addEventListener("click", () => { audio.muted = !audio.muted; initAudio(); setMute(); });
@@ -640,7 +744,7 @@ body.boss .timebar i{background:linear-gradient(90deg,#B0177A,var(--hot))}
   document.addEventListener("dblclick", e => e.preventDefault());
 
   $("#bestStart").textContent = S.best ? `Dein Rekord: ${fmt(S.best)} Punkte` : "";
-  setTime(ROUND, ROUND);
+  setTime(LEVELS[1].time, LEVELS[1].time);
 })();
 </script>
 <!--ARTIFACT-END-->
